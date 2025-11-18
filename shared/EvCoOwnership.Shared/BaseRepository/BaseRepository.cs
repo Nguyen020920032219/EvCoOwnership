@@ -8,10 +8,12 @@ public class BaseRepository<TDbContext, TEntity, TKey> : IBaseRepository<TEntity
     where TEntity : class
 {
     protected readonly TDbContext _context;
+    protected readonly DbSet<TEntity> _dbSet;
 
     public BaseRepository(TDbContext dbContext)
     {
         _context = dbContext;
+        _dbSet = _context.Set<TEntity>();
     }
 
     public DbSet<TEntity> DbSet()
@@ -98,5 +100,10 @@ public class BaseRepository<TDbContext, TEntity, TKey> : IBaseRepository<TEntity
         var result = await _context.SaveChangesAsync();
         if (result > 0) return entity;
         return null;
+    }
+    
+    public virtual async Task<TEntity?> GetByIdAsync(TKey id)
+    {
+        return await _dbSet.FindAsync(id);
     }
 }
