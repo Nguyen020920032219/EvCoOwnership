@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace VehicleService.Data.Entities;
 
-namespace VehicleService.Data.Entities;
-
-public partial class Vehicle
+public class Vehicle
 {
     public int VehicleId { get; set; }
 

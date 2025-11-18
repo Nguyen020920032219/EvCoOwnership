@@ -1,6 +1,7 @@
 using AuthService.Business.Models;
 using AuthService.Business.Services.JwtToken;
 using AuthService.Data.Configurations;
+using AuthService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Business.Services.Auth;
@@ -23,10 +24,7 @@ public class AuthService : IAuthService
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
 
-        if (user == null)
-        {
-            throw new Exception("Invalid phone or password.");
-        }
+        if (user == null) throw new Exception("Invalid phone or password.");
 
         // TODO: sau này dùng hash, giờ tạm plain text cho dễ test:
         // if (user.PasswordHash != request.Password)
@@ -51,13 +49,10 @@ public class AuthService : IAuthService
         var exists = await _dbContext.AppUsers
             .AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
 
-        if (exists)
-        {
-            throw new Exception("Phone number already exists.");
-        }
+        if (exists) throw new Exception("Phone number already exists.");
 
         // TODO: hash password, demo thì lưu plain
-        var user = new Data.Entities.AppUser
+        var user = new AppUser
         {
             PhoneNumber = request.PhoneNumber,
             PasswordHash = request.Password,
@@ -68,7 +63,7 @@ public class AuthService : IAuthService
         await _dbContext.SaveChangesAsync();
 
         // Tạo profile
-        var profile = new Data.Entities.UserProfile
+        var profile = new UserProfile
         {
             UserId = user.UserId,
             FirstName = request.FirstName,

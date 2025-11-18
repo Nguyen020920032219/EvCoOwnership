@@ -1,8 +1,7 @@
 using System.Text;
-using BookingService.Business;
-using BookingService.Business.Services;
+using BookingService.Business.Services.Bookings;
 using BookingService.Data.Configurations;
-using BookingService.Data.Entities;
+using BookingService.Data.Repositories.Bookings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,8 +14,9 @@ var connectionString = builder.Configuration.GetConnectionString("BookingDb");
 builder.Services.AddDbContext<BookingDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. DI cho Business layer
-builder.Services.AddScoped<IBookingService, BookingService.Business.BookingService>();
+// 2. Đăng ký Services & Repositories (QUAN TRỌNG: Phải có cả 2 dòng này)
+builder.Services.AddScoped<IBookingRepository, BookingRepository>(); // <-- Bạn đang thiếu dòng này
+builder.Services.AddScoped<IBookingService, BookingService.Business.Services.Bookings.BookingService>();
 
 builder.Services.AddControllers();
 
@@ -54,8 +54,8 @@ builder.Services.AddSwaggerGen(options =>
 
 // 4. JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var secret   = jwtSection["Secret"]!;
-var issuer   = jwtSection["Issuer"];
+var secret = jwtSection["Secret"]!;
+var issuer = jwtSection["Issuer"];
 var audience = jwtSection["Audience"];
 
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
@@ -88,7 +88,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-// Không dùng HTTPS redirect vì mình đang reverse proxy http qua gateway
+// Không dùng HTTPS redirect vì reverse proxy
 // app.UseHttpsRedirection();
 
 app.UseAuthentication();

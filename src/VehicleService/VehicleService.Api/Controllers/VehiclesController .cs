@@ -1,15 +1,12 @@
-using System.Security.Claims;
-using EvCoOwnership.Shared;
-using Microsoft.AspNetCore.Authorization;
+using EvCoOwnership.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using VehicleService.Business.Models;
-using VehicleService.Business.Services;
+using VehicleService.Business.Services.Vehicles;
 
 namespace VehicleService.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class VehiclesController : ControllerBase
 {
     private readonly IVehicleService _vehicleService;
@@ -22,11 +19,21 @@ public class VehiclesController : ControllerBase
     [HttpGet("by-group/{groupId:int}")]
     public async Task<IActionResult> GetByGroup(int groupId)
     {
-        // Nếu sau này muốn check user thuộc group thì lấy userId từ token ở đây
-        // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var data = await _vehicleService.GetVehiclesByGroupAsync(groupId);
+        return Ok(ApiResult<IReadOnlyList<VehicleDto>>.Ok(data));
+    }
 
-        var vehicles = await _vehicleService.GetVehiclesByGroupAsync(groupId);
-
-        return Ok(ApiResult<IReadOnlyList<VehicleDto>>.Ok(vehicles));
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
+    {
+        try
+        {
+            var result = await _vehicleService.CreateVehicleAsync(request);
+            return Ok(ApiResult<VehicleDto>.Ok(result, "Thêm xe mới thành công"));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<VehicleDto>.Fail(ex.Message));
+        }
     }
 }

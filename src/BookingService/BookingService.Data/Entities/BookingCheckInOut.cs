@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace BookingService.Data.Entities;
 
-namespace BookingService.Data.Entities;
-
-public partial class BookingCheckInOut
+public class BookingCheckInOut
 {
     public int CheckInOutId { get; set; }
 

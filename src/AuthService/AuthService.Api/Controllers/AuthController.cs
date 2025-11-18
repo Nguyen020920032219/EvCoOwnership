@@ -1,6 +1,6 @@
 using AuthService.Business.Models;
 using AuthService.Business.Services.Auth;
-using EvCoOwnership.Shared;
+using EvCoOwnership.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

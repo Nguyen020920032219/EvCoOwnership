@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ContractGroupService.Data.Entities;
+﻿using ContractGroupService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContractGroupService.Data.Configurations;
@@ -37,7 +35,9 @@ public partial class ContractGroupDbContext : DbContext
     public virtual DbSet<VoteChoice> VoteChoices { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:ContractGroupDb");
+    {
+        optionsBuilder.UseSqlServer("Name=ConnectionStrings:ContractGroupDb");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

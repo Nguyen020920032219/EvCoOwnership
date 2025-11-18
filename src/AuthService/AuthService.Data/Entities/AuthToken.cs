@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace AuthService.Data.Entities;
 
-namespace AuthService.Data.Entities;
-
-public partial class AuthToken
+public class AuthToken
 {
     public int Id { get; set; }
 

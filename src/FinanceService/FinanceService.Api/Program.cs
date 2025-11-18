@@ -1,41 +1,102 @@
+using System.Text;
+using FinanceService.Business.Services.Expenses;
+using FinanceService.Business.Services.Funds;
+using FinanceService.Data.Configurations;
+using FinanceService.Data.Repositories.Expenses;
+using FinanceService.Data.Repositories.Funds;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+// Namespaces cho Repo & Service
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 1. DbContext
+// Lưu ý: Đổi chuỗi kết nối thành FinanceDb
+var connectionString = builder.Configuration.GetConnectionString("FinanceDb")
+                       ??
+                       "Server=localhost;Database=EvCoOwnership_FinanceDb;Trusted_Connection=True;TrustServerCertificate=True;";
+
+builder.Services.AddDbContext<FinanceDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// 2. Đăng ký Repository (Layer Data)
+builder.Services.AddScoped<IFundRepository, FundRepository>();
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+
+// 3. Đăng ký Service (Layer Business)
+builder.Services.AddScoped<IFundService, FundService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+
+builder.Services.AddControllers();
+
+// 4. Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Finance Service API", Version = "v1" });
+
+    // Cấu hình JWT cho Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+// 5. JWT Authentication
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var secret = jwtSection["Secret"] ?? "this-is-a-very-long-super-secret-key-123456"; // Fallback nếu chưa config
+var issuer = jwtSection["Issuer"];
+var audience = jwtSection["Audience"];
+
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = key
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

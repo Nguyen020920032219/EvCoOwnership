@@ -1,5 +1,4 @@
 using System.Text;
-using AuthService.Business;
 using AuthService.Business.Services.Auth;
 using AuthService.Business.Services.JwtToken;
 using AuthService.Data.Configurations;

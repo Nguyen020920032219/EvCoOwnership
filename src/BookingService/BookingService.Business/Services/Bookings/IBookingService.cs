@@ -1,6 +1,6 @@
 using BookingService.Business.Models;
 
-namespace BookingService.Business.Services;
+namespace BookingService.Business.Services.Bookings;
 
 public interface IBookingService
 {

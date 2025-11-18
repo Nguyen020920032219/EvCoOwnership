@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace ContractGroupService.Data.Entities;
 
-namespace ContractGroupService.Data.Entities;
-
-public partial class GroupDispute
+public class GroupDispute
 {
     public int GroupDisputeId { get; set; }
 
@@ -27,5 +24,6 @@ public partial class GroupDispute
 
     public virtual CoOwnershipGroup CoOwnershipGroup { get; set; } = null!;
 
-    public virtual ICollection<GroupDisputeMessage> GroupDisputeMessages { get; set; } = new List<GroupDisputeMessage>();
+    public virtual ICollection<GroupDisputeMessage> GroupDisputeMessages { get; set; } =
+        new List<GroupDisputeMessage>();
 }

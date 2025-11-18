@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace BookingService.Data.Entities;
 
-namespace BookingService.Data.Entities;
-
-public partial class VehicleBooking
+public class VehicleBooking
 {
     public int BookingId { get; set; }
 

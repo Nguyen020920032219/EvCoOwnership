@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using VehicleService.Business.Services;
-using VehicleService.Data;
+using VehicleService.Business.Services.Vehicles;
 using VehicleService.Data.Configurations;
+using VehicleService.Data.Repositories.Vehicles;
+// Thêm namespace của Repository
+// Thêm namespace của Service
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +16,15 @@ var connectionString = builder.Configuration.GetConnectionString("VehicleDb");
 builder.Services.AddDbContext<VehicleDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. DI cho Business
-builder.Services.AddScoped<IVehicleService, VehicleService.Business.VehicleService>();
+// 2. Đăng ký Repositories (QUAN TRỌNG - Bạn đang thiếu phần này)
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+
+// 3. Đăng ký Business Services
+builder.Services.AddScoped<IVehicleService, VehicleService.Business.Services.Vehicles.VehicleService>();
 
 builder.Services.AddControllers();
 
-// 3. Swagger + JWT
+// 4. Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -51,10 +56,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// 4. JWT Auth
+// 5. JWT Auth
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var secret   = jwtSection["Secret"]!;
-var issuer   = jwtSection["Issuer"];
+var secret = jwtSection["Secret"]!;
+var issuer = jwtSection["Issuer"];
 var audience = jwtSection["Audience"];
 
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));

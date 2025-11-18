@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using ContractGroupService.Business.Models;
-using ContractGroupService.Business.Services.Group;
-using EvCoOwnership.Shared;
+using ContractGroupService.Business.Services.Groups;
+using EvCoOwnership.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,25 +19,41 @@ public class GroupsController : ControllerBase
         _groupService = groupService;
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await _groupService.CreateGroupAsync(userId, request);
+            return Ok(ApiResult<GroupDetailDto>.Ok(result, "Tạo nhóm thành công"));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<GroupDetailDto>.Fail(ex.Message));
+        }
+    }
+
     [HttpGet("my")]
     public async Task<IActionResult> GetMyGroups()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var list = await _groupService.GetMyGroupsAsync(userId);
+        return Ok(ApiResult<List<CoOwnerGroupDto>>.Ok(list));
+    }
+
+    [HttpGet("{groupId}")]
+    public async Task<IActionResult> GetGroupDetail(int groupId)
+    {
+        try
         {
-            return Unauthorized(ApiResult<IReadOnlyList<CoOwnerGroupDto>>.Fail(
-                "Invalid user id in token.",
-                ErrorCodes.Unauthorized
-            ));
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var detail = await _groupService.GetGroupDetailAsync(groupId, userId);
+            return Ok(ApiResult<GroupDetailDto>.Ok(detail));
         }
-
-        var groups = await _groupService.GetGroupsByUserAsync(userId);
-
-        if (groups.Count == 0)
+        catch (Exception ex)
         {
-            return Ok(ApiResult<IReadOnlyList<CoOwnerGroupDto>>.Ok(groups, "User has no co-ownership groups."));
+            return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
-
-        return Ok(ApiResult<IReadOnlyList<CoOwnerGroupDto>>.Ok(groups));
     }
 }

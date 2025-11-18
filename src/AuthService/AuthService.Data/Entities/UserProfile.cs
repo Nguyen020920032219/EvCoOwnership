@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace AuthService.Data.Entities;
 
-namespace AuthService.Data.Entities;
-
-public partial class UserProfile
+public class UserProfile
 {
     public int ProfileId { get; set; }
 

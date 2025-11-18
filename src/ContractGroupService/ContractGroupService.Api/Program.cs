@@ -1,12 +1,15 @@
 using System.Text;
-using ContractGroupService.Business;
-using ContractGroupService.Business.Services.Group;
-using ContractGroupService.Data;
+using ContractGroupService.Business.Services.Groups;
+using ContractGroupService.Business.Services.Votes;
 using ContractGroupService.Data.Configurations;
+using ContractGroupService.Data.Repositories.Groups;
+using ContractGroupService.Data.Repositories.Votes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+// Thêm namespace Repository và Service
+// Namespace của GroupRepository
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +18,12 @@ var connectionString = builder.Configuration.GetConnectionString("ContractGroupD
 builder.Services.AddDbContext<ContractGroupDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. DI cho Business
+// 2. Đăng ký Services & Repositories (QUAN TRỌNG: Phải có cả 2 dòng này)
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<IVoteRepository, VoteRepository>();
+
 builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IVoteService, VoteService>();
 
 builder.Services.AddControllers();
 

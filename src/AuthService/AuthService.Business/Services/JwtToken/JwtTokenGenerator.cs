@@ -22,7 +22,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         var secret = jwtSection.GetValue<string>("Secret")!;
         var issuer = jwtSection.GetValue<string>("Issuer");
         var audience = jwtSection.GetValue<string>("Audience");
-        var minutes = jwtSection.GetValue<int>("AccessTokenMinutes", 30);
+        var minutes = jwtSection.GetValue("AccessTokenMinutes", 30);
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

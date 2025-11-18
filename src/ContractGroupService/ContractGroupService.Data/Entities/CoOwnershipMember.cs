@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace ContractGroupService.Data.Entities;
 
-namespace ContractGroupService.Data.Entities;
-
-public partial class CoOwnershipMember
+public class CoOwnershipMember
 {
     public int UserId { get; set; }
 
