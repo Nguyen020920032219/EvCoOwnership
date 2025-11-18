@@ -36,4 +36,11 @@ public class VehiclesController : ControllerBase
             return BadRequest(ApiResult<VehicleDto>.Fail(ex.Message));
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _vehicleService.GetVehicles();
+        return Ok(ApiResult<List<VehicleDto>>.Ok(result));
+    }
 }

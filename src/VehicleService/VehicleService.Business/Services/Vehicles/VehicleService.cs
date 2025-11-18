@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using VehicleService.Business.Models;
 using VehicleService.Data.Entities;
 using VehicleService.Data.Repositories.Vehicles;
@@ -54,6 +55,11 @@ public class VehicleService : IVehicleService
         // await _vehicleRepo.SaveChangesAsync(); 
 
         return MapToDto(entity);
+    }
+
+    public Task<List<VehicleDto>> GetVehicles()
+    {
+        return Task.FromResult(_vehicleRepo.DbSet().Select(MapToDto).ToList());
     }
 
     // Helper mapping

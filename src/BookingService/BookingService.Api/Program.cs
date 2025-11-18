@@ -1,7 +1,9 @@
 using System.Text;
 using BookingService.Business.Services.Bookings;
+using BookingService.Business.Services.CheckInOuts;
 using BookingService.Data.Configurations;
 using BookingService.Data.Repositories.Bookings;
+using BookingService.Data.Repositories.CheckInOuts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,8 +17,11 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // 2. Đăng ký Services & Repositories (QUAN TRỌNG: Phải có cả 2 dòng này)
-builder.Services.AddScoped<IBookingRepository, BookingRepository>(); // <-- Bạn đang thiếu dòng này
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<ICheckInOutRepository, CheckInOutRepository>();
+
 builder.Services.AddScoped<IBookingService, BookingService.Business.Services.Bookings.BookingService>();
+builder.Services.AddScoped<ICheckInOutService, CheckInOutService>();
 
 builder.Services.AddControllers();
 
