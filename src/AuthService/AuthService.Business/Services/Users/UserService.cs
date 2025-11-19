@@ -27,7 +27,8 @@ public class UserService : IUserService
             RoleName = u.Role.RoleName,
             FirstName = u.UserProfile?.FirstName ?? "",
             LastName = u.UserProfile?.LastName ?? "",
-            Email = u.UserProfile?.Email
+            Email = u.UserProfile?.Email,
+            IsActive =  u.IsActive
         }).ToList();
     }
 
@@ -43,7 +44,8 @@ public class UserService : IUserService
             RoleName = user.Role.RoleName,
             FirstName = user.UserProfile?.FirstName ?? "",
             LastName = user.UserProfile?.LastName ?? "",
-            Email = user.UserProfile?.Email
+            Email = user.UserProfile?.Email,
+            IsActive = user.IsActive
         };
     }
 
