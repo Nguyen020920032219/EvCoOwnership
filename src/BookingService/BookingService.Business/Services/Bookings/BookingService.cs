@@ -1,4 +1,5 @@
 using BookingService.Business.Models;
+using BookingService.Business.Services.External;
 using BookingService.Data.Entities;
 using BookingService.Data.Repositories.Bookings;
 
@@ -8,7 +9,7 @@ public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepo;
 
-    public BookingService(IBookingRepository bookingRepo)
+    public BookingService(IBookingRepository bookingRepo )
     {
         _bookingRepo = bookingRepo;
     }
@@ -61,6 +62,25 @@ public class BookingService : IBookingService
             UserId = b.UserId,
             StartTime = b.StartDate,
             EndTime = b.EndDate
+        }).ToList();
+    }
+    
+    public async Task<List<VehicleCalendarDto>> GetVehicleCalendarAsync(int vehicleId, DateTime from, DateTime to)
+    {
+        var bookings = await _bookingRepo.GetBookingsByVehicleAsync(vehicleId, from, to);
+
+        return bookings.Select(b => new VehicleCalendarDto
+        {
+            BookingId = b.BookingId,
+            StartTime = b.StartDate,
+            EndTime = b.EndDate,
+            Status = b.Status switch 
+            { 
+                1 => "Upcoming", 
+                2 => "InProgress", 
+                3 => "Completed", 
+                _ => "Unknown" 
+            }
         }).ToList();
     }
 }

@@ -1,6 +1,7 @@
 using System.Text;
 using BookingService.Business.Services.Bookings;
 using BookingService.Business.Services.CheckInOuts;
+using BookingService.Business.Services.External;
 using BookingService.Data.Configurations;
 using BookingService.Data.Repositories.Bookings;
 using BookingService.Data.Repositories.CheckInOuts;
@@ -17,11 +18,17 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // 2. Đăng ký Services & Repositories (QUAN TRỌNG: Phải có cả 2 dòng này)
+// Đăng ký HttpClient (Bắt buộc để gọi service khác)
+builder.Services.AddHttpClient(); 
+// Hoặc dùng IHttpContextAccessor nếu cần thiết
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<ICheckInOutRepository, CheckInOutRepository>();
 
 builder.Services.AddScoped<IBookingService, BookingService.Business.Services.Bookings.BookingService>();
 builder.Services.AddScoped<ICheckInOutService, CheckInOutService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddControllers();
 

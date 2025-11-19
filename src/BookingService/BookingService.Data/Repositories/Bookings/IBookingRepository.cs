@@ -10,4 +10,7 @@ public interface IBookingRepository : IBaseRepository<VehicleBooking, int>
 
     // Lấy danh sách booking của user
     Task<IReadOnlyList<VehicleBooking>> GetByUserIdAsync(int userId);
+    
+    // Lấy danh sách booking của xe theo khoảng thời gian
+    Task<IReadOnlyList<VehicleBooking>> GetBookingsByVehicleAsync(int vehicleId, DateTime from, DateTime to);
 }
