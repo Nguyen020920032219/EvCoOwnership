@@ -19,6 +19,14 @@ public class GroupsController : ControllerBase
         _groupService = groupService;
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _groupService.GetGroups();
+        return Ok(ApiResult<List<CoOwnerGroupDto>>.Ok(result));
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
     {

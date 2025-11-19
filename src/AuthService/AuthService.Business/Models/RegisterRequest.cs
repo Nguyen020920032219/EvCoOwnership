@@ -9,6 +9,5 @@ public class RegisterRequest
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 
-    public string CitizenIdentification { get; set; } = string.Empty;
-    public string DrivingLicense { get; set; } = string.Empty;
+    public bool ValidCitizenIdentification { get; set; }
 }

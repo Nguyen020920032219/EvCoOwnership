@@ -8,6 +8,8 @@ public class AppUser
 
     public string PasswordHash { get; set; } = null!;
 
+    public bool IsActive { get; set; }
+
     public int RoleId { get; set; }
 
     public virtual ICollection<AuthToken> AuthTokens { get; set; } = new List<AuthToken>();

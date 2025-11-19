@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using EvCoOwnership.Shared;
 using EvCoOwnership.Shared.Models;
 using FinanceService.Business.Models;
 using FinanceService.Business.Services.Payments;

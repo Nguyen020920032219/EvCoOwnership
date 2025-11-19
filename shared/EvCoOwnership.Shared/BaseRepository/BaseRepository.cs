@@ -101,7 +101,7 @@ public class BaseRepository<TDbContext, TEntity, TKey> : IBaseRepository<TEntity
         if (result > 0) return entity;
         return null;
     }
-    
+
     public virtual async Task<TEntity?> GetByIdAsync(TKey id)
     {
         return await _dbSet.FindAsync(id);

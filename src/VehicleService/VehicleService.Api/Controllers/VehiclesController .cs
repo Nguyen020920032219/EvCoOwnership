@@ -43,4 +43,18 @@ public class VehiclesController : ControllerBase
         var result = await _vehicleService.GetVehicles();
         return Ok(ApiResult<List<VehicleDto>>.Ok(result));
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        try
+        {
+            var result = await _vehicleService.GetById(id);
+            return Ok(ApiResult<VehicleDto>.Ok(result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<VehicleDto>.Fail(ex.Message));
+        }
+    }
 }

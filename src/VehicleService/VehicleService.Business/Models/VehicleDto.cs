@@ -9,6 +9,6 @@ public class VehicleDto
     public string Model { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
     public decimal? BatteryCapacityKwh { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string? Status { get; set; }
     public int CoOwnerGroupId { get; set; }
 }

@@ -11,6 +11,8 @@ public interface IBaseRepository<TEntity, TKey> where TEntity : class
 
     #endregion
 
+    Task<TEntity?> GetByIdAsync(TKey id);
+
     #region Read
 
     DbSet<TEntity> DbSet();
@@ -36,6 +38,4 @@ public interface IBaseRepository<TEntity, TKey> where TEntity : class
     Task<ICollection<TEntity>> UpdateRange(ICollection<TEntity> entities);
 
     #endregion
-    
-    Task<TEntity?> GetByIdAsync(TKey id);
 }

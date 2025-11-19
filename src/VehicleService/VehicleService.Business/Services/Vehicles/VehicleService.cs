@@ -62,6 +62,13 @@ public class VehicleService : IVehicleService
         return Task.FromResult(_vehicleRepo.DbSet().Select(MapToDto).ToList());
     }
 
+    public async Task<VehicleDto> GetById(int id)
+    {
+        var vehicle = await _vehicleRepo.DbSet().FirstOrDefaultAsync(v => v.VehicleId == id) ??
+                      throw new Exception("Vehicle Not Found");
+        return MapToDto(vehicle);
+    }
+
     // Helper mapping
     private static VehicleDto MapToDto(Vehicle v)
     {

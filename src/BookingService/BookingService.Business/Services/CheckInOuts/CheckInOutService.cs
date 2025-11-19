@@ -7,8 +7,8 @@ namespace BookingService.Business.Services.CheckInOuts;
 
 public class CheckInOutService : ICheckInOutService
 {
-    private readonly ICheckInOutRepository _checkInOutRepo;
     private readonly IBookingRepository _bookingRepo;
+    private readonly ICheckInOutRepository _checkInOutRepo;
 
     public CheckInOutService(ICheckInOutRepository checkInOutRepo, IBookingRepository bookingRepo)
     {
@@ -24,7 +24,7 @@ public class CheckInOutService : ICheckInOutService
         // 1. Validate
         if (booking.UserId != userId) throw new Exception("Bạn không phải chủ booking này");
         if (booking.Status != 1) throw new Exception("Booking không ở trạng thái sẵn sàng (Upcoming)");
-        
+
         // 2. Lưu Check-in
         var checkIn = new BookingCheckInOut
         {
@@ -35,24 +35,23 @@ public class CheckInOutService : ICheckInOutService
 
         // Lưu điều kiện xe
         foreach (var cond in request.Conditions)
-        {
             checkIn.VehicleConditions.Add(new VehicleCondition
             {
                 VehicleId = booking.VehicleId,
                 Name = cond.Name,
                 Detail = cond.Detail
             });
-        }
 
         await _checkInOutRepo.Add(checkIn);
 
         // 3. Update trạng thái Booking -> InProgress (2)
-        booking.Status = 2; 
+        booking.Status = 2;
         await _bookingRepo.Update(booking);
-        
+
         // Save changes (Transaction ngầm định)
 
-        return new CheckInOutResponseDto { CheckInOutId = checkIn.CheckInOutId, Type = "CheckIn", Time = checkIn.DateTime };
+        return new CheckInOutResponseDto
+            { CheckInOutId = checkIn.CheckInOutId, Type = "CheckIn", Time = checkIn.DateTime };
     }
 
     public async Task<CheckInOutResponseDto> PerformCheckOutAsync(int userId, CheckInOutRequest request)
@@ -73,14 +72,12 @@ public class CheckInOutService : ICheckInOutService
         };
 
         foreach (var cond in request.Conditions)
-        {
             checkOut.VehicleConditions.Add(new VehicleCondition
             {
                 VehicleId = booking.VehicleId,
                 Name = cond.Name,
                 Detail = cond.Detail
             });
-        }
 
         await _checkInOutRepo.Add(checkOut);
 
@@ -91,6 +88,7 @@ public class CheckInOutService : ICheckInOutService
 
         await _bookingRepo.Update(booking);
 
-        return new CheckInOutResponseDto { CheckInOutId = checkOut.CheckInOutId, Type = "CheckOut", Time = checkOut.DateTime };
+        return new CheckInOutResponseDto
+            { CheckInOutId = checkOut.CheckInOutId, Type = "CheckOut", Time = checkOut.DateTime };
     }
 }

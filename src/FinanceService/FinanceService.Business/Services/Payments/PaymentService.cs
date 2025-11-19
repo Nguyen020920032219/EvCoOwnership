@@ -7,8 +7,8 @@ namespace FinanceService.Business.Services.Payments;
 
 public class PaymentService : IPaymentService
 {
-    private readonly IPaymentRepository _paymentRepo;
     private readonly IFundRepository _fundRepo; // Cần để cộng tiền vào quỹ
+    private readonly IPaymentRepository _paymentRepo;
 
     public PaymentService(IPaymentRepository paymentRepo, IFundRepository fundRepo)
     {
@@ -60,8 +60,8 @@ public class PaymentService : IPaymentService
         await _fundRepo.Update(fund);
 
         // 3. Ghi log lịch sử quỹ
-        var reason = trans.SharedExpenseId.HasValue 
-            ? $"Thanh toán chi phí #{trans.SharedExpenseId}" 
+        var reason = trans.SharedExpenseId.HasValue
+            ? $"Thanh toán chi phí #{trans.SharedExpenseId}"
             : "Nạp quỹ trực tiếp";
 
         await _fundRepo.AddHistoryAsync(new GroupFundHistory

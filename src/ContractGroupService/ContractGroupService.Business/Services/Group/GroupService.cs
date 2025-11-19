@@ -1,6 +1,7 @@
 using ContractGroupService.Business.Models;
 using ContractGroupService.Data.Entities;
 using ContractGroupService.Data.Repositories.Groups;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContractGroupService.Business.Services.Groups;
 
@@ -98,5 +99,16 @@ public class GroupService : IGroupService
                 IsAdmin = group.CoOwnershipMembers.First(m => m.UserId == s.UserId).IsGroupAdmin
             }).ToList()
         };
+    }
+
+    public async Task<List<CoOwnerGroupDto>> GetGroups()
+    {
+        return await _groupRepo.DbSet().Select(c => new CoOwnerGroupDto
+        {
+            ContractId = c.ContractId,
+            CoOwnerGroupId = c.CoOwnerGroupId,
+            CreatedAt = c.CreatedAt,
+            GroupName = c.GroupName
+        }).ToListAsync();
     }
 }

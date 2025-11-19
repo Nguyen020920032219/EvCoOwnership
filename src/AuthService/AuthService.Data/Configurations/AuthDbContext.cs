@@ -26,11 +26,11 @@ public partial class AuthDbContext : DbContext
     {
         modelBuilder.Entity<AppUser>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__AppUser__1788CC4C8C525301");
+            entity.HasKey(e => e.UserId).HasName("PK__AppUser__1788CC4C66498F61");
 
             entity.ToTable("AppUser");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__AppUser__85FB4E38AE76D933").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__AppUser__85FB4E38451412BF").IsUnique();
 
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.PhoneNumber).HasMaxLength(255);
@@ -52,7 +52,7 @@ public partial class AuthDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE1AE1BFB8F3");
+            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE1A44707BE3");
 
             entity.ToTable("Role");
 
@@ -61,11 +61,11 @@ public partial class AuthDbContext : DbContext
 
         modelBuilder.Entity<UserProfile>(entity =>
         {
-            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E4E70889FE");
+            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E444ABDCD3");
 
             entity.ToTable("UserProfile");
 
-            entity.HasIndex(e => e.UserId, "UQ__UserProf__1788CC4D468E36CA").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__UserProf__1788CC4DE660AF72").IsUnique();
 
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.FirstName).HasMaxLength(255);

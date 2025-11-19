@@ -47,7 +47,7 @@ public class DisputeService : IDisputeService
         // Check quyền xem (là thành viên nhóm hoặc là Staff - ở đây tạm check thành viên)
         var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
         if (!groups.Any(g => g.CoOwnerGroupId == dispute.CoOwnershipGroupId))
-             throw new Exception("Không có quyền truy cập.");
+            throw new Exception("Không có quyền truy cập.");
 
         return MapToDto(dispute);
     }
@@ -77,7 +77,7 @@ public class DisputeService : IDisputeService
         dispute.Status = 2; // Resolved
         dispute.ResolvedAt = DateTime.UtcNow;
         dispute.ResolvedByStaffId = staffId;
-        
+
         // Thêm note của admin vào message luôn
         await _disputeRepo.AddMessageAsync(new GroupDisputeMessage
         {

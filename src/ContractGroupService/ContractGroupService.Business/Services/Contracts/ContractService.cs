@@ -19,7 +19,7 @@ public class ContractService : IContractService
     public async Task<ContractDetailDto> GenerateContractAsync(int userId, GenerateContractRequest request)
     {
         // 1. Check quyền Admin nhóm
-        bool isAdmin = await _groupRepo.IsGroupAdminAsync(request.CoOwnerGroupId, userId);
+        var isAdmin = await _groupRepo.IsGroupAdminAsync(request.CoOwnerGroupId, userId);
         if (!isAdmin) throw new Exception("Chỉ Admin nhóm mới được tạo hợp đồng.");
 
         // 2. Check xem nhóm đã có hợp đồng chưa
@@ -46,7 +46,7 @@ public class ContractService : IContractService
             group.ContractId = contract.ContractId;
             await _groupRepo.Update(group);
         }
-        
+
         return new ContractDetailDto
         {
             ContractId = contract.ContractId,
@@ -61,17 +61,16 @@ public class ContractService : IContractService
         // Validate thành viên
         var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
         if (!groups.Any(g => g.CoOwnerGroupId == groupId))
-             throw new Exception("Bạn không phải thành viên nhóm.");
+            throw new Exception("Bạn không phải thành viên nhóm.");
 
         var contract = await _contractRepo.GetByGroupIdAsync(groupId);
         if (contract == null) throw new Exception("Nhóm chưa có hợp đồng.");
 
         // Lấy danh sách thành viên để map trạng thái ký
         var groupDetail = await _groupRepo.GetGroupDetailAsync(groupId);
-        
+
         var signatures = new List<SignatureStatusDto>();
         if (groupDetail != null)
-        {
             foreach (var member in groupDetail.CoOwnershipMembers)
             {
                 var sig = contract.ContractSignatures.FirstOrDefault(s => s.UserId == member.UserId);
@@ -82,7 +81,6 @@ public class ContractService : IContractService
                     SignedAt = sig?.SignedAt
                 });
             }
-        }
 
         return new ContractDetailDto
         {
@@ -97,7 +95,7 @@ public class ContractService : IContractService
     public async Task SignContractAsync(int userId, int contractId)
     {
         // 1. Check đã ký chưa
-        bool signed = await _contractRepo.HasUserSignedAsync(contractId, userId);
+        var signed = await _contractRepo.HasUserSignedAsync(contractId, userId);
         if (signed) throw new Exception("Bạn đã ký hợp đồng này rồi.");
 
         // 2. Tạo chữ ký

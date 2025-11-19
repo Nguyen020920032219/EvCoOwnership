@@ -19,18 +19,15 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        // Tìm user theo phone
         var user = await _dbContext.AppUsers
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
 
         if (user == null) throw new Exception("Invalid phone or password.");
 
-        // TODO: sau này dùng hash, giờ tạm plain text cho dễ test:
-        // if (user.PasswordHash != request.Password)
-        // {
-        //     throw new Exception("Invalid phone or password.");
-        // }
+        if (user.PasswordHash != request.Password) throw new Exception("Invalid phone or password.");
+
+        if (!user.IsActive) throw new Exception("User is not active.");
 
         var token = _jwtTokenGenerator.GenerateToken(user, user.Role.RoleName);
 
@@ -45,24 +42,22 @@ public class AuthService : IAuthService
 
     public async Task RegisterAsync(RegisterRequest request)
     {
-        // Check trùng phone
         var exists = await _dbContext.AppUsers
             .AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
 
         if (exists) throw new Exception("Phone number already exists.");
 
-        // TODO: hash password, demo thì lưu plain
+        if (!request.ValidCitizenIdentification) throw new Exception("Invalid citizen identification.");
+
         var user = new AppUser
         {
             PhoneNumber = request.PhoneNumber,
             PasswordHash = request.Password,
-            RoleId = 3 // CoOwner
+            RoleId = 3
         };
 
         _dbContext.AppUsers.Add(user);
-        await _dbContext.SaveChangesAsync();
 
-        // Tạo profile
         var profile = new UserProfile
         {
             UserId = user.UserId,

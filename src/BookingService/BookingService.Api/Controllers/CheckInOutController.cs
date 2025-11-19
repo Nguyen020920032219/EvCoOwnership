@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using BookingService.Business.Models;
 using BookingService.Business.Services.CheckInOuts;
-using EvCoOwnership.Shared;
 using EvCoOwnership.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using ContractGroupService.Business.Models;
 using ContractGroupService.Business.Services.Contracts;
-using EvCoOwnership.Shared;
 using EvCoOwnership.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
