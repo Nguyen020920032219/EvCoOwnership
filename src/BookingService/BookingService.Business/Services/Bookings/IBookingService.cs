@@ -7,4 +7,6 @@ public interface IBookingService
 {
     Task<BookingResponseDto> CreateBookingAsync(int userId, BookingRequestDto request);
     Task<List<BookingResponseDto>> GetMyBookingsAsync(int userId);
-    Task<List<VehicleCalendarDto>> GetVehicleCalendarAsync(int vehicleId, DateTime from, DateTime to);}
+    Task<List<VehicleCalendarDto>> GetVehicleCalendarAsync(int vehicleId, DateTime from, DateTime to);
+    Task<List<BookingResponseDto>> GetGroupBookingsAsync(int userId, int groupId, string accessToken);
+}

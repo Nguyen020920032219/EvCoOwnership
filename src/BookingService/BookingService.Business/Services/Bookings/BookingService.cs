@@ -83,4 +83,23 @@ public class BookingService : IBookingService
             }
         }).ToList();
     }
+    
+    public async Task<List<BookingResponseDto>> GetGroupBookingsAsync(int userId, int groupId, string accessToken)
+    {
+        // Lưu ý: Việc check user có thuộc group không sẽ làm ở Controller cho gọn code Service này
+        // hoặc bạn có thể inject IPermissionService vào đây.
+        
+        var bookings = await _bookingRepo.GetByGroupIdAsync(groupId);
+
+        return bookings.Select(b => new BookingResponseDto
+        {
+            BookingId = b.BookingId,
+            VehicleId = b.VehicleId,
+            UserId = b.UserId,
+            StartTime = b.StartDate,
+            EndTime = b.EndDate
+            // Nếu muốn hiện tên người đặt, cần gọi AuthService để lấy Profile,
+            // nhưng để đơn giản ở MVP thì trả về UserId là đủ.
+        }).ToList();
+    }
 }

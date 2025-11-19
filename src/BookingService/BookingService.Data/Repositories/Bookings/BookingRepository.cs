@@ -30,18 +30,27 @@ public class BookingRepository : BaseRepository<BookingDbContext, VehicleBooking
             .OrderByDescending(b => b.StartDate)
             .ToListAsync();
     }
-    
-    public async Task<IReadOnlyList<VehicleBooking>> GetBookingsByVehicleAsync(int vehicleId, DateTime from, DateTime to)
+
+    public async Task<IReadOnlyList<VehicleBooking>> GetBookingsByVehicleAsync(int vehicleId, DateTime from,
+        DateTime to)
     {
         // Lấy các booking CÓ thời gian đè lên khoảng [from, to]
         // Logic overlap: (BookingStart < RangeEnd) AND (BookingEnd > RangeStart)
         // Status != 4 (Canceled)
         return await DbSet()
-            .Where(b => b.VehicleId == vehicleId 
-                        && b.Status != 4 
-                        && b.StartDate < to 
+            .Where(b => b.VehicleId == vehicleId
+                        && b.Status != 4
+                        && b.StartDate < to
                         && b.EndDate > from)
             .OrderBy(b => b.StartDate)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<VehicleBooking>> GetByGroupIdAsync(int groupId)
+    {
+        return await DbSet()
+            .Where(b => b.CoOwnerGroupId == groupId)
+            .OrderByDescending(b => b.StartDate) // Mới nhất lên đầu
             .ToListAsync();
     }
 }

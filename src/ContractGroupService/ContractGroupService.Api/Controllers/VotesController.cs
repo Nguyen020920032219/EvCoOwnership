@@ -19,21 +19,6 @@ public class VotesController : ControllerBase
         _voteService = voteService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateVote([FromBody] CreateVoteRequest request)
-    {
-        try
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _voteService.CreateVoteAsync(userId, request);
-            return Ok(ApiResult<VoteDetailDto>.Ok(result, "Tạo cuộc bỏ phiếu thành công"));
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ApiResult<object>.Fail(ex.Message));
-        }
-    }
-
     [HttpPost("{voteId}/cast")]
     public async Task<IActionResult> CastVote(int voteId, [FromBody] CastVoteRequest request)
     {
@@ -72,6 +57,27 @@ public class VotesController : ControllerBase
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var result = await _voteService.GetVoteResultAsync(userId, voteId);
             return Ok(ApiResult<VoteDetailDto>.Ok(result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail(ex.Message));
+        }
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> CreateVote([FromBody] CreateVoteRequest request)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            
+            // Lấy Role từ Claims
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "CoOwner";
+
+            // Truyền Role xuống Service
+            var result = await _voteService.CreateVoteAsync(userId, userRole, request);
+            
+            return Ok(ApiResult<VoteDetailDto>.Ok(result, "Tạo cuộc bỏ phiếu thành công"));
         }
         catch (Exception ex)
         {

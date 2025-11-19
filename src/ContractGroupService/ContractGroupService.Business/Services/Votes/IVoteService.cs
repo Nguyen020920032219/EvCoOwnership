@@ -8,4 +8,5 @@ public interface IVoteService
     Task CastVoteAsync(int userId, int voteId, CastVoteRequest request);
     Task<List<VoteDetailDto>> GetVotesByGroupAsync(int userId, int groupId);
     Task<VoteDetailDto> GetVoteResultAsync(int userId, int voteId);
+    Task<VoteDetailDto> CreateVoteAsync(int userId, string userRole, CreateVoteRequest request);
 }

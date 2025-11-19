@@ -87,4 +87,28 @@ public class BookingsController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
+    
+    [HttpGet("group/{groupId}")]
+    public async Task<IActionResult> GetGroupBookings(int groupId)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+        var userId = int.Parse(userIdStr);
+
+        // Lấy token để check quyền (Forward token)
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        if (string.IsNullOrEmpty(accessToken)) return Unauthorized();
+        
+        // --- CHECK QUYỀN (ĐÃ IMPLEMENT) ---
+        var isMember = await _permissionService.IsUserInGroupAsync(userId, groupId, accessToken);
+        if (!isMember)
+        {
+            return StatusCode(403, ApiResult<string>.Fail("Bạn không phải thành viên của nhóm này."));
+        }
+        // ----------------------------------
+
+        // Gọi Service lấy dữ liệu (Hàm này bạn đã có ở bước trước)
+        var list = await _service.GetGroupBookingsAsync(userId, groupId, accessToken);
+        return Ok(ApiResult<List<BookingResponseDto>>.Ok(list));
+    }
 }

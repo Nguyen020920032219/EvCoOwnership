@@ -46,6 +46,33 @@ public class PermissionService : IPermissionService
         // Bước 3: Kiểm tra xem GroupId của xe có nằm trong danh sách nhóm của user không
         return groupRes.Data.Any(g => g.CoOwnerGroupId == groupId);
     }
+    
+    public async Task<bool> IsUserInGroupAsync(int userId, int groupId, string accessToken)
+    {
+        var groupClient = _httpClientFactory.CreateClient();
+        // Cấu hình cứng URL của ContractGroupService (Port 5196)
+        groupClient.BaseAddress = new Uri("http://localhost:5196");
+        groupClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+        try 
+        {
+            // Gọi API lấy danh sách nhóm của User ("My Groups")
+            var groupRes = await groupClient.GetFromJsonAsync<ApiResultExternal<List<GroupDtoExternal>>>("api/Groups/my");
+
+            if (groupRes == null || !groupRes.Success || groupRes.Data == null)
+            {
+                return false;
+            }
+
+            // Check xem groupId có nằm trong danh sách nhóm của user không
+            return groupRes.Data.Any(g => g.CoOwnerGroupId == groupId);
+        }
+        catch
+        {
+            // Log error nếu cần
+            return false;
+        }
+    }
 }
 
 // --- Các Class DTO dùng tạm để hứng dữ liệu JSON ---

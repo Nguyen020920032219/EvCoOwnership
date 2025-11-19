@@ -112,4 +112,33 @@ public class VoteService : IVoteService
             }).ToList()
         };
     }
+    
+    public async Task<VoteDetailDto> CreateVoteAsync(int userId, string userRole, CreateVoteRequest request)
+    {
+        // Logic mới:
+        // Nếu Role là Admin hoặc Staff (Operator) -> Cho phép luôn (Bỏ qua check member)
+        // Nếu là CoOwner (User thường) -> Phải check xem có trong nhóm không
+        
+        bool isSystemAdmin = userRole == "Admin" || userRole == "Operator"; // String khớp với SystemRoles.cs
+
+        if (!isSystemAdmin)
+        {
+            // User thường thì phải check
+            await ValidateGroupMember(request.CoOwnerGroupId, userId);
+        }
+
+        var vote = new GroupVote
+        {
+            CoOwnerGroupId = request.CoOwnerGroupId,
+            UserId = userId,
+            Topic = request.Topic,
+            Description = request.Description,
+            Status = 0, // Open
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _voteRepo.Add(vote);
+
+        return MapToDto(vote);
+    }
 }
