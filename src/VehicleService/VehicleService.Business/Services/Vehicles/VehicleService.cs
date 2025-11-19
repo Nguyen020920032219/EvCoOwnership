@@ -45,7 +45,8 @@ public class VehicleService : IVehicleService
             PurchasePrice = request.PurchasePrice,
             CoOwnerGroupId = request.CoOwnerGroupId,
             PurchaseDate = DateOnly.FromDateTime(DateTime.Now), // Mặc định ngày mua là hôm nay (demo)
-            Status = 1 // Default: 1 = Active
+            Status = 1, // Default: 1 = Active
+            ContractId = request.ContractId
         };
 
         // 3. Save to DB

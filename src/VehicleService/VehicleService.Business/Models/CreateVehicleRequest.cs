@@ -2,6 +2,7 @@ namespace VehicleService.Business.Models;
 
 public class CreateVehicleRequest
 {
+    public int? ContractId { get; set; }
     public string LicensePlate { get; set; } = string.Empty;
     public string Vin { get; set; } = string.Empty;
     public string Make { get; set; } = string.Empty;
