@@ -1,31 +1,32 @@
 using AuthService.Business.Models;
 using AuthService.Business.Services.JwtToken;
-using AuthService.Data.Configurations;
 using AuthService.Data.Entities;
-using Microsoft.EntityFrameworkCore;
+using AuthService.Data.Repositories.Users; // Mới
+using AuthService.Data.Repositories.Profiles; // Mới
 
 namespace AuthService.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {
-    private readonly AuthDbContext _dbContext;
+    private readonly IUserRepository _userRepo;
+    private readonly IUserProfileRepository _profileRepo;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
-    public AuthService(AuthDbContext dbContext, IJwtTokenGenerator jwtTokenGenerator)
+    public AuthService(IUserRepository userRepo, IUserProfileRepository profileRepo,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
-        _dbContext = dbContext;
+        _userRepo = userRepo;
+        _profileRepo = profileRepo;
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var user = await _dbContext.AppUsers
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+        var user = await _userRepo.GetByPhoneNumberAsync(request.PhoneNumber);
 
         if (user == null) throw new Exception("Invalid phone or password.");
 
-        if (user.PasswordHash != request.Password) throw new Exception("Invalid phone or password.");
+        if (user.PasswordHash != request.Password) throw new Exception("Invalid password.");
 
         if (!user.IsActive) throw new Exception("User is not active.");
 
@@ -42,21 +43,18 @@ public class AuthService : IAuthService
 
     public async Task RegisterAsync(RegisterRequest request)
     {
-        var exists = await _dbContext.AppUsers
-            .AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
-
-        if (exists) throw new Exception("Phone number already exists.");
-
-        if (!request.ValidCitizenIdentification) throw new Exception("Invalid citizen identification.");
+        var exists = await _userRepo.GetByPhoneNumberAsync(request.PhoneNumber);
+        if (exists != null) throw new Exception("Phone number already exists.");
 
         var user = new AppUser
         {
             PhoneNumber = request.PhoneNumber,
             PasswordHash = request.Password,
-            RoleId = 3
+            RoleId = 3 // CoOwner
         };
 
-        _dbContext.AppUsers.Add(user);
+        await _userRepo.Add(user);
+        // await _userRepo.SaveChangesAsync();
 
         var profile = new UserProfile
         {
@@ -66,7 +64,7 @@ public class AuthService : IAuthService
             Email = request.Email
         };
 
-        _dbContext.UserProfiles.Add(profile);
-        await _dbContext.SaveChangesAsync();
+        await _profileRepo.Add(profile);
+        // await _profileRepo.SaveChangesAsync();
     }
 }

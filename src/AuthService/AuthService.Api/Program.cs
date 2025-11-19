@@ -1,7 +1,11 @@
 using System.Text;
 using AuthService.Business.Services.Auth;
 using AuthService.Business.Services.JwtToken;
+using AuthService.Business.Services.Profiles;
+using AuthService.Business.Services.Users;
 using AuthService.Data.Configurations;
+using AuthService.Data.Repositories.Profiles;
+using AuthService.Data.Repositories.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,12 +19,18 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // 2. DI cho Business layer
-builder.Services.AddScoped<IAuthService, AuthService.Business.Services.Auth.AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+
+// 3. Đăng ký Services (Business Layer)
+builder.Services.AddScoped<IAuthService, AuthService.Business.Services.Auth.AuthService>(); 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 builder.Services.AddControllers();
 
-// 3. Swagger
+// 4. Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -51,7 +61,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-// 4. JWT Authentication
+// 5. JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var secret = jwtSection.GetValue<string>("Secret");
 var issuer = jwtSection.GetValue<string>("Issuer");
