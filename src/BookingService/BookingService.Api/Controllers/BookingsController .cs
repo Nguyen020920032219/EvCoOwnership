@@ -14,10 +14,10 @@ namespace BookingService.Api.Controllers;
 [Authorize]
 public class BookingsController : ControllerBase
 {
-    private readonly IBookingService _service;
     private readonly IPermissionService _permissionService;
+    private readonly IBookingService _service;
 
-    public BookingsController(IBookingService service,  IPermissionService permissionService)
+    public BookingsController(IBookingService service, IPermissionService permissionService)
     {
         _service = service;
         _permissionService = permissionService;
@@ -54,7 +54,7 @@ public class BookingsController : ControllerBase
 
         return Ok(ApiResult<List<BookingResponseDto>>.Ok(list));
     }
-    
+
     [HttpGet("vehicle/{vehicleId}/calendar")]
     public async Task<IActionResult> GetCalendar(int vehicleId, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
@@ -69,9 +69,7 @@ public class BookingsController : ControllerBase
         // --- CHECK QUYỀN ---
         var canView = await _permissionService.CanViewVehicleCalendarAsync(userId, vehicleId, accessToken);
         if (!canView)
-        {
             return StatusCode(403, ApiResult<string>.Fail("Bạn không thuộc nhóm sở hữu xe này, không thể xem lịch."));
-        }
         // -------------------
 
         var startDate = from ?? DateTime.UtcNow;
@@ -87,7 +85,7 @@ public class BookingsController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
-    
+
     [HttpGet("group/{groupId}")]
     public async Task<IActionResult> GetGroupBookings(int groupId)
     {
@@ -98,13 +96,10 @@ public class BookingsController : ControllerBase
         // Lấy token để check quyền (Forward token)
         var accessToken = await HttpContext.GetTokenAsync("access_token");
         if (string.IsNullOrEmpty(accessToken)) return Unauthorized();
-        
+
         // --- CHECK QUYỀN (ĐÃ IMPLEMENT) ---
         var isMember = await _permissionService.IsUserInGroupAsync(userId, groupId, accessToken);
-        if (!isMember)
-        {
-            return StatusCode(403, ApiResult<string>.Fail("Bạn không phải thành viên của nhóm này."));
-        }
+        if (!isMember) return StatusCode(403, ApiResult<string>.Fail("Bạn không phải thành viên của nhóm này."));
         // ----------------------------------
 
         // Gọi Service lấy dữ liệu (Hàm này bạn đã có ở bước trước)

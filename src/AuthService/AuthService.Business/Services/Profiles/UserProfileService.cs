@@ -1,14 +1,14 @@
 using AuthService.Business.Models;
 using AuthService.Data.Entities;
-using AuthService.Data.Repositories.Users;
 using AuthService.Data.Repositories.Profiles;
+using AuthService.Data.Repositories.Users;
 
 namespace AuthService.Business.Services.Profiles;
 
 public class UserProfileService : IUserProfileService
 {
-    private readonly IUserRepository _userRepo;
     private readonly IUserProfileRepository _profileRepo;
+    private readonly IUserRepository _userRepo;
 
     public UserProfileService(IUserRepository userRepo, IUserProfileRepository profileRepo)
     {

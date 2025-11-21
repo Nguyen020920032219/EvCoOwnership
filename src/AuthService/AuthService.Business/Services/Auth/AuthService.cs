@@ -1,16 +1,19 @@
 using AuthService.Business.Models;
 using AuthService.Business.Services.JwtToken;
 using AuthService.Data.Entities;
-using AuthService.Data.Repositories.Users; // Mới
-using AuthService.Data.Repositories.Profiles; // Mới
+using AuthService.Data.Repositories.Profiles;
+using AuthService.Data.Repositories.Users;
+// Mới
+
+// Mới
 
 namespace AuthService.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {
-    private readonly IUserRepository _userRepo;
-    private readonly IUserProfileRepository _profileRepo;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IUserProfileRepository _profileRepo;
+    private readonly IUserRepository _userRepo;
 
     public AuthService(IUserRepository userRepo, IUserProfileRepository profileRepo,
         IJwtTokenGenerator jwtTokenGenerator)

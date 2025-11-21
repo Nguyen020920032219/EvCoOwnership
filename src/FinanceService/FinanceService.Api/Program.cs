@@ -1,9 +1,11 @@
 using System.Text;
 using FinanceService.Business.Services.Expenses;
 using FinanceService.Business.Services.Funds;
+using FinanceService.Business.Services.Payments;
 using FinanceService.Data.Configurations;
 using FinanceService.Data.Repositories.Expenses;
 using FinanceService.Data.Repositories.Funds;
+using FinanceService.Data.Repositories.Payments;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,13 +24,17 @@ var connectionString = builder.Configuration.GetConnectionString("FinanceDb")
 builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.AddHttpContextAccessor();
+
 // 2. Đăng ký Repository (Layer Data)
 builder.Services.AddScoped<IFundRepository, FundRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // 3. Đăng ký Service (Layer Business)
 builder.Services.AddScoped<IFundService, FundService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddControllers();
 

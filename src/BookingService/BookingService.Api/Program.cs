@@ -19,7 +19,7 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
 
 // 2. Đăng ký Services & Repositories (QUAN TRỌNG: Phải có cả 2 dòng này)
 // Đăng ký HttpClient (Bắt buộc để gọi service khác)
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpClient();
 // Hoặc dùng IHttpContextAccessor nếu cần thiết
 builder.Services.AddHttpContextAccessor();
 

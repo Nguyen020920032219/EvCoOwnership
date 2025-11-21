@@ -1,5 +1,4 @@
 using BookingService.Business.Models;
-using BookingService.Business.Services.External;
 using BookingService.Data.Entities;
 using BookingService.Data.Repositories.Bookings;
 
@@ -9,7 +8,7 @@ public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepo;
 
-    public BookingService(IBookingRepository bookingRepo )
+    public BookingService(IBookingRepository bookingRepo)
     {
         _bookingRepo = bookingRepo;
     }
@@ -64,7 +63,7 @@ public class BookingService : IBookingService
             EndTime = b.EndDate
         }).ToList();
     }
-    
+
     public async Task<List<VehicleCalendarDto>> GetVehicleCalendarAsync(int vehicleId, DateTime from, DateTime to)
     {
         var bookings = await _bookingRepo.GetBookingsByVehicleAsync(vehicleId, from, to);
@@ -74,21 +73,21 @@ public class BookingService : IBookingService
             BookingId = b.BookingId,
             StartTime = b.StartDate,
             EndTime = b.EndDate,
-            Status = b.Status switch 
-            { 
-                1 => "Upcoming", 
-                2 => "InProgress", 
-                3 => "Completed", 
-                _ => "Unknown" 
+            Status = b.Status switch
+            {
+                1 => "Upcoming",
+                2 => "InProgress",
+                3 => "Completed",
+                _ => "Unknown"
             }
         }).ToList();
     }
-    
+
     public async Task<List<BookingResponseDto>> GetGroupBookingsAsync(int userId, int groupId, string accessToken)
     {
         // Lưu ý: Việc check user có thuộc group không sẽ làm ở Controller cho gọn code Service này
         // hoặc bạn có thể inject IPermissionService vào đây.
-        
+
         var bookings = await _bookingRepo.GetByGroupIdAsync(groupId);
 
         return bookings.Select(b => new BookingResponseDto

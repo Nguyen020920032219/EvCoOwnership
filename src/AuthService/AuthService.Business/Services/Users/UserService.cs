@@ -1,14 +1,17 @@
 using AuthService.Business.Models;
 using AuthService.Data.Entities;
-using AuthService.Data.Repositories.Users;       // Using mới
-using AuthService.Data.Repositories.Profiles;    // Using mới
+using AuthService.Data.Repositories.Profiles;
+using AuthService.Data.Repositories.Users;
+// Using mới
+
+// Using mới
 
 namespace AuthService.Business.Services.Users;
 
 public class UserService : IUserService
 {
-    private readonly IUserRepository _userRepo;
     private readonly IUserProfileRepository _profileRepo;
+    private readonly IUserRepository _userRepo;
 
     public UserService(IUserRepository userRepo, IUserProfileRepository profileRepo)
     {
@@ -19,7 +22,7 @@ public class UserService : IUserService
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
         var users = await _userRepo.GetAllWithProfileAsync();
-        
+
         return users.Select(u => new UserDto
         {
             UserId = u.UserId,
@@ -28,7 +31,7 @@ public class UserService : IUserService
             FirstName = u.UserProfile?.FirstName ?? "",
             LastName = u.UserProfile?.LastName ?? "",
             Email = u.UserProfile?.Email,
-            IsActive =  u.IsActive
+            IsActive = u.IsActive
         }).ToList();
     }
 
@@ -98,15 +101,15 @@ public class UserService : IUserService
             user.UserProfile = new UserProfile { UserId = userId };
             await _profileRepo.Add(user.UserProfile);
         }
-        
+
         user.UserProfile.FirstName = request.FirstName;
         user.UserProfile.LastName = request.LastName;
         user.UserProfile.Email = request.Email;
-        
+
         // Save thông qua Repo tương ứng (hoặc UnitOfWork)
         // Ở đây dùng repo profile update entity profile
-        await _profileRepo.Update(user.UserProfile); 
-        
+        await _profileRepo.Update(user.UserProfile);
+
         // await _userRepo.SaveChangesAsync();
     }
 
@@ -116,10 +119,7 @@ public class UserService : IUserService
         if (user == null) throw new Exception("User not found");
 
         var profile = await _profileRepo.GetByUserIdAsync(userId);
-        if (profile != null) 
-        {
-            await _profileRepo.Delete(profile);
-        }
+        if (profile != null) await _profileRepo.Delete(profile);
 
         await _userRepo.Delete(user);
         // await _userRepo.SaveChangesAsync();

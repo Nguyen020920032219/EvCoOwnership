@@ -23,7 +23,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 
 // 3. Đăng ký Services (Business Layer)
-builder.Services.AddScoped<IAuthService, AuthService.Business.Services.Auth.AuthService>(); 
+builder.Services.AddScoped<IAuthService, AuthService.Business.Services.Auth.AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

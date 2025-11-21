@@ -74,13 +74,13 @@ public class DisputeService : IDisputeService
         var dispute = await _disputeRepo.GetByIdAsync(disputeId);
         if (dispute == null) throw new Exception("Không tìm thấy tranh chấp.");
 
-        if (dispute.Status == 2 || dispute.Status == 3) 
+        if (dispute.Status == 2 || dispute.Status == 3)
             throw new Exception("Tranh chấp này đã được xử lý trước đó.");
 
-        dispute.Status = 2; 
+        dispute.Status = 2;
         dispute.ResolvedAt = DateTime.UtcNow;
         dispute.ResolvedByStaffId = staffId;
-        
+
         await _disputeRepo.AddMessageAsync(new GroupDisputeMessage
         {
             GroupDisputeId = disputeId,
@@ -108,5 +108,12 @@ public class DisputeService : IDisputeService
                 SentAt = m.CreatedAt
             }).ToList()
         };
+    }
+    
+    public async Task<List<DisputeDetailDto>> GetAllDisputesAsync()
+    {
+        var disputes = await _disputeRepo.GetAllAsync();
+        
+        return disputes.Select(MapToDto).ToList();
     }
 }

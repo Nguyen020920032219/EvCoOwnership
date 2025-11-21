@@ -1,5 +1,4 @@
 using BookingService.Business.Models;
-using BookingService.Data.Entities;
 
 namespace BookingService.Business.Services.Bookings;
 

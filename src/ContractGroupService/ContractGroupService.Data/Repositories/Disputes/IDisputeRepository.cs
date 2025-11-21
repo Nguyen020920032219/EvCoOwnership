@@ -13,4 +13,7 @@ public interface IDisputeRepository : IBaseRepository<GroupDispute, int>
 
     // Thêm tin nhắn vào cuộc tranh chấp
     Task AddMessageAsync(GroupDisputeMessage message);
+    
+    // Lấy tất cả tranh chấp
+    Task<IReadOnlyList<GroupDispute>> GetAllAsync();
 }

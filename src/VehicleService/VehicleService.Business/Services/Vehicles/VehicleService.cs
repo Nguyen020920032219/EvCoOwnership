@@ -63,6 +63,15 @@ public class VehicleService : IVehicleService
         return Task.FromResult(_vehicleRepo.DbSet().Select(MapToDto).ToList());
     }
 
+    public async Task<VehicleDto?> GetVehicleByIdAsync(int vehicleId)
+    {
+        // Sử dụng hàm GetByIdAsync của BaseRepository (hoặc Where nếu chưa có Base)
+        var vehicle = await _vehicleRepo.Where(v => v.VehicleId == vehicleId).FirstOrDefaultAsync();
+
+        if (vehicle == null) return null;
+        return MapToDto(vehicle);
+    }
+
     // Helper mapping
     private static VehicleDto MapToDto(Vehicle v)
     {
@@ -84,14 +93,5 @@ public class VehicleService : IVehicleService
                 _ => "Unknown"
             }
         };
-    }
-    
-    public async Task<VehicleDto?> GetVehicleByIdAsync(int vehicleId)
-    {
-        // Sử dụng hàm GetByIdAsync của BaseRepository (hoặc Where nếu chưa có Base)
-        var vehicle = await _vehicleRepo.Where(v => v.VehicleId == vehicleId).FirstOrDefaultAsync();
-        
-        if (vehicle == null) return null;
-        return MapToDto(vehicle);
     }
 }

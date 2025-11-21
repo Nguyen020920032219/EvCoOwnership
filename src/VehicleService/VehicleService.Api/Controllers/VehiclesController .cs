@@ -43,13 +43,13 @@ public class VehiclesController : ControllerBase
         var result = await _vehicleService.GetVehicles();
         return Ok(ApiResult<List<VehicleDto>>.Ok(result));
     }
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _vehicleService.GetVehicleByIdAsync(id);
         if (result == null) return NotFound(ApiResult<string>.Fail("Vehicle not found"));
-        
+
         return Ok(ApiResult<VehicleDto>.Ok(result));
     }
 }

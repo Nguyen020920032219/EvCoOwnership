@@ -13,47 +13,52 @@ namespace FinanceService.Api.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
+    // Bỏ bớt config nếu không dùng VNPAY nữa
+    // private readonly IConfiguration _configuration; 
 
     public PaymentsController(IPaymentService paymentService)
     {
         _paymentService = paymentService;
     }
 
-    [HttpPost("initiate")]
-    public async Task<IActionResult> Initiate([FromBody] InitiatePaymentRequest request)
+    // --- API THANH TOÁN GIẢ LẬP (MỚI) ---
+    // Gọi cái là thành công luôn, tiền vào quỹ ngay lập tức
+    [HttpPost("fake-pay")]
+    public async Task<IActionResult> FakePayment([FromBody] InitiatePaymentRequest request)
+    {
+        try
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            var userId = int.Parse(userIdStr);
+
+            // Bước 1: Tạo giao dịch (Pending)
+            var transDto = await _paymentService.InitiatePaymentAsync(userId, request);
+
+            // Bước 2: Tự động xác nhận thành công (Success + Cộng tiền quỹ)
+            await _paymentService.ConfirmPaymentSuccessAsync(transDto.TransactionId);
+
+            return Ok(ApiResult<string>.Ok("OK", "Thanh toán giả lập thành công! Tiền đã vào quỹ."));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<string>.Fail(ex.Message));
+        }
+    }
+
+    // API xem lịch sử (Giữ lại để check kết quả)
+    [HttpGet("my-history")]
+    public async Task<IActionResult> GetHistory([FromQuery] int groupId)
     {
         try
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _paymentService.InitiatePaymentAsync(userId, request);
-            return Ok(ApiResult<PaymentTransactionDto>.Ok(result, "Khởi tạo giao dịch thành công"));
+            var list = await _paymentService.GetMyHistoryAsync(userId, groupId);
+            return Ok(ApiResult<List<PaymentTransactionDto>>.Ok(list));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiResult<string>.Fail(ex.Message));
+            return BadRequest(ApiResult<List<PaymentTransactionDto>>.Fail(ex.Message));
         }
-    }
-
-    // API này thường sẽ là Webhook từ VNPay, ở đây làm dạng manual confirm để test
-    [HttpPost("{transactionId}/confirm-mock")]
-    public async Task<IActionResult> ConfirmMock(int transactionId)
-    {
-        try
-        {
-            await _paymentService.ConfirmPaymentSuccessAsync(transactionId);
-            return Ok(ApiResult<string>.Ok("OK", "Giao dịch đã được xác nhận thành công"));
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ApiResult<string>.Fail(ex.Message));
-        }
-    }
-
-    [HttpGet("my-history")]
-    public async Task<IActionResult> GetHistory([FromQuery] int groupId)
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var list = await _paymentService.GetMyHistoryAsync(userId, groupId);
-        return Ok(ApiResult<List<PaymentTransactionDto>>.Ok(list));
     }
 }

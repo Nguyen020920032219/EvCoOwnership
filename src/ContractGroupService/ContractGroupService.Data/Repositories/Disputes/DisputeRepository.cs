@@ -31,4 +31,11 @@ public class DisputeRepository : BaseRepository<ContractGroupDbContext, GroupDis
         await _context.Set<GroupDisputeMessage>().AddAsync(message);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<IReadOnlyList<GroupDispute>> GetAllAsync()
+    {
+        return await DbSet()
+            .OrderByDescending(d => d.CreatedAt) 
+            .ToListAsync();
+    }
 }
