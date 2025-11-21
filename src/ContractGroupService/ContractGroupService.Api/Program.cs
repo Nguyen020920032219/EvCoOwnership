@@ -36,8 +36,10 @@ builder.Services.AddScoped<IDisputeService, DisputeService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 
-// 3. Swagger + cấu hình Bearer
+// Đăng ký HttpContextAccessor để lấy Token từ Header
+builder.Services.AddHttpContextAccessor(); // 3. Swagger + cấu hình Bearer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

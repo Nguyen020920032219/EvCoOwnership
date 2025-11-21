@@ -1,10 +1,12 @@
 using System.Text;
 using FinanceService.Business.Services.Expenses;
 using FinanceService.Business.Services.Funds;
+using FinanceService.Business.Services.Invoices;
 using FinanceService.Business.Services.Payments;
 using FinanceService.Data.Configurations;
 using FinanceService.Data.Repositories.Expenses;
 using FinanceService.Data.Repositories.Funds;
+using FinanceService.Data.Repositories.Invoices;
 using FinanceService.Data.Repositories.Payments;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -30,14 +32,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFundRepository, FundRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
 
 // 3. Đăng ký Service (Layer Business)
 builder.Services.AddScoped<IFundService, FundService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 
 builder.Services.AddControllers();
-
+builder.Services.AddHttpClient();
 // 4. Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
