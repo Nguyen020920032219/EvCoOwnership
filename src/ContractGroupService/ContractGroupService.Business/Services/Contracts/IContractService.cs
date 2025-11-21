@@ -4,12 +4,12 @@ namespace ContractGroupService.Business.Services.Contracts;
 
 public interface IContractService
 {
-    // Tạo hợp đồng mới cho nhóm (thường do Admin nhóm làm)
-    Task<ContractDetailDto> GenerateContractAsync(int userId, GenerateContractRequest request);
+    // Thêm userRole vào
+    Task<ContractDetailDto> GenerateContractAsync(int userId, string? userRole, GenerateContractRequest request);
 
-    // Lấy thông tin hợp đồng
-    Task<ContractDetailDto> GetContractByGroupAsync(int userId, int groupId);
+    // Thêm userRole vào
+    Task<ContractDetailDto> GetContractByGroupAsync(int userId, string? userRole, int groupId);
 
-    // Ký hợp đồng
+    // Hàm ký giữ nguyên (Hành động cá nhân)
     Task SignContractAsync(int userId, int contractId);
 }

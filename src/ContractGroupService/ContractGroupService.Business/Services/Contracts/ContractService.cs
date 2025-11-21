@@ -2,6 +2,7 @@ using ContractGroupService.Business.Models;
 using ContractGroupService.Data.Entities;
 using ContractGroupService.Data.Repositories.Contracts;
 using ContractGroupService.Data.Repositories.Groups;
+using EvCoOwnership.Shared.Models; // Cần namespace này để dùng SystemRoles
 
 namespace ContractGroupService.Business.Services.Contracts;
 
@@ -16,40 +17,41 @@ public class ContractService : IContractService
         _groupRepo = groupRepo;
     }
 
-    public async Task<ContractDetailDto> GenerateContractAsync(int userId, GenerateContractRequest request)
+    public async Task<ContractDetailDto> GenerateContractAsync(int userId, string? userRole, GenerateContractRequest request)
     {
-        // 1. Check quyền Admin nhóm
-        var isAdmin = await _groupRepo.IsGroupAdminAsync(request.CoOwnerGroupId, userId);
-        if (!isAdmin) throw new Exception("Chỉ Admin nhóm mới được tạo hợp đồng.");
+        // 1. Check quyền: Admin hệ thống/Operator HOẶC Admin nhóm
+        bool isSystemAdmin = userRole == SystemRoles.Admin || userRole == SystemRoles.Operator;
 
-        // 2. Lấy hợp đồng hiện tại (Chắc chắn có vì đã tạo nháp lúc tạo nhóm)
+        if (!isSystemAdmin)
+        {
+            // Nếu không phải Admin hệ thống, bắt buộc phải là Admin nhóm
+            var isGroupAdmin = await _groupRepo.IsGroupAdminAsync(request.CoOwnerGroupId, userId);
+            if (!isGroupAdmin) 
+                throw new Exception("Chỉ Admin nhóm hoặc Quản trị viên hệ thống mới được tạo/sửa hợp đồng.");
+        }
+
+        // 2. Lấy hợp đồng hiện tại
         var contract = await _contractRepo.GetByGroupIdAsync(request.CoOwnerGroupId);
-
+        
         if (contract == null)
         {
-            // Trường hợp hy hữu nếu data cũ chưa có, ta tạo mới (Fallback)
             contract = new OwnershipContract
             {
                 CreatedAt = DateTime.UtcNow
             };
             await _contractRepo.Add(contract);
-
-            // Update lại group
+            
             var group = await _groupRepo.GetByIdAsync(request.CoOwnerGroupId);
-            if (group != null)
-            {
+            if (group != null) {
                 group.ContractId = contract.ContractId;
                 await _groupRepo.Update(group);
             }
         }
 
-        // 3. Cập nhật nội dung hợp đồng (Thay vì báo lỗi tồn tại)
+        // 3. Cập nhật nội dung
         contract.Content = request.Content;
         contract.UpdatedAt = DateTime.UtcNow;
-
-        // Reset lại chữ ký nếu sửa hợp đồng (Tùy logic nghiệp vụ, ở đây mình giữ nguyên hoặc xóa chữ ký cũ)
-        // contract.ContractSignatures.Clear(); 
-
+        
         await _contractRepo.Update(contract);
 
         return new ContractDetailDto
@@ -61,19 +63,24 @@ public class ContractService : IContractService
         };
     }
 
-    // ... (Các hàm GetContractByGroupAsync, SignContractAsync GIỮ NGUYÊN) ...
-    public async Task<ContractDetailDto> GetContractByGroupAsync(int userId, int groupId)
+    public async Task<ContractDetailDto> GetContractByGroupAsync(int userId, string? userRole, int groupId)
     {
-        var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
-        if (!groups.Any(g => g.CoOwnerGroupId == groupId))
-            throw new Exception("Bạn không phải thành viên nhóm.");
+        // 1. Check quyền xem: Admin hệ thống/Operator HOẶC Thành viên nhóm
+        bool isSystemAdmin = userRole == SystemRoles.Admin || userRole == SystemRoles.Operator;
+
+        if (!isSystemAdmin)
+        {
+            var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
+            if (!groups.Any(g => g.CoOwnerGroupId == groupId))
+                throw new Exception("Bạn không phải thành viên nhóm, không thể xem hợp đồng.");
+        }
 
         var contract = await _contractRepo.GetByGroupIdAsync(groupId);
         if (contract == null) throw new Exception("Nhóm chưa có hợp đồng.");
 
         var groupDetail = await _groupRepo.GetGroupDetailAsync(groupId);
         var signatures = new List<SignatureStatusDto>();
-
+        
         if (groupDetail != null)
             foreach (var member in groupDetail.CoOwnershipMembers)
             {
@@ -98,6 +105,8 @@ public class ContractService : IContractService
 
     public async Task SignContractAsync(int userId, int contractId)
     {
+        // Hàm này giữ nguyên, vì chỉ thành viên sở hữu cổ phần mới cần ký.
+        // Admin hệ thống không nên ký thay.
         var signed = await _contractRepo.HasUserSignedAsync(contractId, userId);
         if (signed) throw new Exception("Bạn đã ký hợp đồng này rồi.");
 

@@ -19,14 +19,18 @@ public class ContractsController : ControllerBase
         _contractService = contractService;
     }
 
+    // Helper
+    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private string? UserRole => User.FindFirst(ClaimTypes.Role)?.Value;
+
     [HttpPost("generate")]
     public async Task<IActionResult> Generate([FromBody] GenerateContractRequest request)
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _contractService.GenerateContractAsync(userId, request);
-            return Ok(ApiResult<ContractDetailDto>.Ok(result, "Tạo hợp đồng thành công"));
+            // Truyền thêm UserRole
+            var result = await _contractService.GenerateContractAsync(UserId, UserRole, request);
+            return Ok(ApiResult<ContractDetailDto>.Ok(result, "Tạo/Cập nhật hợp đồng thành công"));
         }
         catch (Exception ex)
         {
@@ -39,8 +43,8 @@ public class ContractsController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _contractService.GetContractByGroupAsync(userId, groupId);
+            // Truyền thêm UserRole
+            var result = await _contractService.GetContractByGroupAsync(UserId, UserRole, groupId);
             return Ok(ApiResult<ContractDetailDto>.Ok(result));
         }
         catch (Exception ex)
@@ -54,8 +58,8 @@ public class ContractsController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            await _contractService.SignContractAsync(userId, contractId);
+            // Hàm ký vẫn chỉ dùng UserId (logic cũ)
+            await _contractService.SignContractAsync(UserId, contractId);
             return Ok(ApiResult<string>.Ok("OK", "Ký hợp đồng thành công"));
         }
         catch (Exception ex)
