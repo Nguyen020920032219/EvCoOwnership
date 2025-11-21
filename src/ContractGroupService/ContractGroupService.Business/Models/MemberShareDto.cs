@@ -3,6 +3,8 @@ namespace ContractGroupService.Business.Models;
 public class MemberShareDto
 {
     public int UserId { get; set; }
-    public decimal SharePercent { get; set; } // 0.3 = 30%
+    public string UserName { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public decimal SharePercent { get; set; }
     public bool IsAdmin { get; set; } = false;
 }

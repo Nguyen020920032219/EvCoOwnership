@@ -72,18 +72,20 @@ public class DisputeService : IDisputeService
     public async Task ResolveDisputeAsync(int staffId, int disputeId, string resolutionNote)
     {
         var dispute = await _disputeRepo.GetByIdAsync(disputeId);
-        if (dispute == null) throw new Exception("Not found");
+        if (dispute == null) throw new Exception("Không tìm thấy tranh chấp.");
 
-        dispute.Status = 2; // Resolved
+        if (dispute.Status == 2 || dispute.Status == 3) 
+            throw new Exception("Tranh chấp này đã được xử lý trước đó.");
+
+        dispute.Status = 2; 
         dispute.ResolvedAt = DateTime.UtcNow;
         dispute.ResolvedByStaffId = staffId;
-
-        // Thêm note của admin vào message luôn
+        
         await _disputeRepo.AddMessageAsync(new GroupDisputeMessage
         {
             GroupDisputeId = disputeId,
             SenderUserId = staffId,
-            Message = $"SYSTEM RESOLVED: {resolutionNote}",
+            Message = $"[HỆ THỐNG] Đã giải quyết: {resolutionNote}",
             CreatedAt = DateTime.UtcNow
         });
 

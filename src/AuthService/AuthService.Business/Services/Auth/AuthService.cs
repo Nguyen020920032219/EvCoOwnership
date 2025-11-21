@@ -50,6 +50,7 @@ public class AuthService : IAuthService
         {
             PhoneNumber = request.PhoneNumber,
             PasswordHash = request.Password,
+            IsActive = request.ValidCitizenIdentification,
             RoleId = 3 // CoOwner
         };
 

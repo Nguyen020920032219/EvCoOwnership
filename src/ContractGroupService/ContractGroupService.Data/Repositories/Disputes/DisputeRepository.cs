@@ -29,5 +29,6 @@ public class DisputeRepository : BaseRepository<ContractGroupDbContext, GroupDis
     public async Task AddMessageAsync(GroupDisputeMessage message)
     {
         await _context.Set<GroupDisputeMessage>().AddAsync(message);
+        await _context.SaveChangesAsync();
     }
 }

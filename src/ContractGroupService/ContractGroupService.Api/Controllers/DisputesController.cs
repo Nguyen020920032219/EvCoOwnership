@@ -63,4 +63,27 @@ public class DisputesController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
+    
+    [HttpPut("{id}/resolve")]
+    public async Task<IActionResult> Resolve(int id, [FromBody] ResolveDisputeRequest request)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (role != "Admin" && role != "Operator") 
+            {
+                return StatusCode(403, ApiResult<string>.Fail("Bạn không có quyền xử lý tranh chấp."));
+            }
+
+            await _disputeService.ResolveDisputeAsync(userId, id, request.ResolutionNote);
+            
+            return Ok(ApiResult<string>.Ok("OK", "Tranh chấp đã được giải quyết thành công"));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<string>.Fail(ex.Message));
+        }
+    }
 }
