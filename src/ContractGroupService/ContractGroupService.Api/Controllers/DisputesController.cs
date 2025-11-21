@@ -19,13 +19,15 @@ public class DisputesController : ControllerBase
         _disputeService = disputeService;
     }
 
+    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private string? UserRole => User.FindFirst(ClaimTypes.Role)?.Value;
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDisputeRequest request)
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _disputeService.CreateDisputeAsync(userId, request);
+            var result = await _disputeService.CreateDisputeAsync(UserId, request);
             return Ok(ApiResult<DisputeDetailDto>.Ok(result, "Gửi khiếu nại thành công"));
         }
         catch (Exception ex)
@@ -39,8 +41,7 @@ public class DisputesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _disputeService.GetDisputeDetailAsync(userId, id);
+            var result = await _disputeService.GetDisputeDetailAsync(UserId, UserRole, id);
             return Ok(ApiResult<DisputeDetailDto>.Ok(result));
         }
         catch (Exception ex)
@@ -54,8 +55,7 @@ public class DisputesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            await _disputeService.AddMessageAsync(userId, id, request.Message);
+            await _disputeService.AddMessageAsync(UserId, id, request.Message);
             return Ok(ApiResult<string>.Ok("OK", "Gửi tin nhắn thành công"));
         }
         catch (Exception ex)
@@ -63,20 +63,20 @@ public class DisputesController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
-
+    
     [HttpPut("{id}/resolve")]
     public async Task<IActionResult> Resolve(int id, [FromBody] ResolveDisputeRequest request)
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (role != "Admin" && role != "Operator")
+            var role = UserRole;
+            if (role != "Admin" && role != "Operator") 
+            {
                 return StatusCode(403, ApiResult<string>.Fail("Bạn không có quyền xử lý tranh chấp."));
+            }
 
-            await _disputeService.ResolveDisputeAsync(userId, id, request.ResolutionNote);
-
+            await _disputeService.ResolveDisputeAsync(UserId, id, request.ResolutionNote);
+            
             return Ok(ApiResult<string>.Ok("OK", "Tranh chấp đã được giải quyết thành công"));
         }
         catch (Exception ex)
@@ -105,8 +105,7 @@ public class DisputesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _disputeService.GetDisputesByGroupAsync(userId, groupId);
+            var result = await _disputeService.GetDisputesByGroupAsync(UserId, UserRole, groupId);
             return Ok(ApiResult<List<DisputeDetailDto>>.Ok(result));
         }
         catch (Exception ex)

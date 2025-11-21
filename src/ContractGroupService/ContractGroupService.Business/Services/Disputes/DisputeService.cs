@@ -2,6 +2,7 @@ using ContractGroupService.Business.Models;
 using ContractGroupService.Data.Entities;
 using ContractGroupService.Data.Repositories.Disputes;
 using ContractGroupService.Data.Repositories.Groups;
+using EvCoOwnership.Shared.Models; // Cần namespace này để dùng SystemRoles
 
 namespace ContractGroupService.Business.Services.Disputes;
 
@@ -18,7 +19,7 @@ public class DisputeService : IDisputeService
 
     public async Task<DisputeDetailDto> CreateDisputeAsync(int userId, CreateDisputeRequest request)
     {
-        // Validate member
+        // Validate member (Chỉ thành viên mới được tạo dispute trong nhóm của mình)
         var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
         if (!groups.Any(g => g.CoOwnerGroupId == request.CoOwnerGroupId))
             throw new Exception("Bạn không phải thành viên của nhóm này.");
@@ -39,15 +40,22 @@ public class DisputeService : IDisputeService
         return MapToDto(dispute);
     }
 
-    public async Task<DisputeDetailDto> GetDisputeDetailAsync(int userId, int disputeId)
+    // ĐÃ SỬA: Thêm userRole để check quyền Admin
+    public async Task<DisputeDetailDto> GetDisputeDetailAsync(int userId, string? userRole, int disputeId)
     {
         var dispute = await _disputeRepo.GetDetailAsync(disputeId);
         if (dispute == null) throw new Exception("Không tìm thấy tranh chấp.");
 
-        // Check quyền xem (là thành viên nhóm hoặc là Staff - ở đây tạm check thành viên)
-        var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
-        if (!groups.Any(g => g.CoOwnerGroupId == dispute.CoOwnershipGroupId))
-            throw new Exception("Không có quyền truy cập.");
+        // Check quyền xem: Admin/Operator HOẶC Thành viên nhóm
+        bool isSystemAdmin = userRole == SystemRoles.Admin || userRole == SystemRoles.Operator;
+
+        if (!isSystemAdmin)
+        {
+            // Nếu không phải Admin, phải check xem có thuộc nhóm không
+            var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
+            if (!groups.Any(g => g.CoOwnerGroupId == dispute.CoOwnershipGroupId))
+                throw new Exception("Không có quyền truy cập.");
+        }
 
         return MapToDto(dispute);
     }
@@ -58,6 +66,9 @@ public class DisputeService : IDisputeService
         if (dispute == null) throw new Exception("Không tìm thấy tranh chấp.");
         if (dispute.Status == 2 || dispute.Status == 3) throw new Exception("Tranh chấp đã đóng.");
 
+        // Lưu ý: Ở đây có thể check thêm xem userId có phải là người trong cuộc tranh chấp 
+        // hoặc Admin không, nhưng tạm thời để mở cho thành viên nhóm/admin.
+        
         var msgEntity = new GroupDisputeMessage
         {
             GroupDisputeId = disputeId,
@@ -95,24 +106,25 @@ public class DisputeService : IDisputeService
     public async Task<List<DisputeDetailDto>> GetAllDisputesAsync()
     {
         var disputes = await _disputeRepo.GetAllAsync();
-
         return disputes.Select(MapToDto).ToList();
     }
 
-    public async Task<List<DisputeDetailDto>> GetDisputesByGroupAsync(int userId, int groupId)
+    // ĐÃ SỬA: Thêm userRole để check quyền Admin
+    public async Task<List<DisputeDetailDto>> GetDisputesByGroupAsync(int userId, string? userRole, int groupId)
     {
-        // 1. Check quyền thành viên: User có thuộc nhóm này không?
-        var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
+        // Check quyền xem: Admin/Operator HOẶC Thành viên nhóm
+        bool isSystemAdmin = userRole == SystemRoles.Admin || userRole == SystemRoles.Operator;
 
-        // Nếu user không thuộc nhóm, và không phải Admin/Operator (logic mở rộng nếu cần)
-        // Ở đây mình làm chặt: chỉ thành viên nhóm mới xem được dispute của nhóm
-        if (!groups.Any(g => g.CoOwnerGroupId == groupId))
-            throw new Exception("Bạn không phải là thành viên của nhóm này.");
+        if (!isSystemAdmin)
+        {
+            var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
+            if (!groups.Any(g => g.CoOwnerGroupId == groupId))
+                throw new Exception("Bạn không phải là thành viên của nhóm này.");
+        }
 
-        // 2. Gọi Repo lấy dữ liệu
+        // Gọi Repo lấy dữ liệu
         var disputes = await _disputeRepo.GetByGroupIdAsync(groupId);
 
-        // 3. Map sang DTO
         return disputes.Select(MapToDto).ToList();
     }
 
