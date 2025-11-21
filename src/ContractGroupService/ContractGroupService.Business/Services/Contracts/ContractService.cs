@@ -22,30 +22,35 @@ public class ContractService : IContractService
         var isAdmin = await _groupRepo.IsGroupAdminAsync(request.CoOwnerGroupId, userId);
         if (!isAdmin) throw new Exception("Chỉ Admin nhóm mới được tạo hợp đồng.");
 
-        // 2. Check xem nhóm đã có hợp đồng chưa
-        var existing = await _contractRepo.GetByGroupIdAsync(request.CoOwnerGroupId);
-        if (existing != null) throw new Exception("Nhóm này đã có hợp đồng.");
+        // 2. Lấy hợp đồng hiện tại (Chắc chắn có vì đã tạo nháp lúc tạo nhóm)
+        var contract = await _contractRepo.GetByGroupIdAsync(request.CoOwnerGroupId);
 
-        // 3. Tạo hợp đồng
-        var contract = new OwnershipContract
+        if (contract == null)
         {
-            Content = request.Content,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-            // Contract chưa liên kết vào Group ngay ở DB vì FK nằm ở bảng Group
-            // Ta cần update bảng Group sau khi save contract, hoặc dùng navigation
-        };
+            // Trường hợp hy hữu nếu data cũ chưa có, ta tạo mới (Fallback)
+            contract = new OwnershipContract
+            {
+                CreatedAt = DateTime.UtcNow
+            };
+            await _contractRepo.Add(contract);
 
-        // Lưu Contract trước để lấy ID
-        await _contractRepo.Add(contract);
-
-        // 4. Cập nhật Group trỏ về Contract này
-        var group = await _groupRepo.GetByIdAsync(request.CoOwnerGroupId);
-        if (group != null)
-        {
-            group.ContractId = contract.ContractId;
-            await _groupRepo.Update(group);
+            // Update lại group
+            var group = await _groupRepo.GetByIdAsync(request.CoOwnerGroupId);
+            if (group != null)
+            {
+                group.ContractId = contract.ContractId;
+                await _groupRepo.Update(group);
+            }
         }
+
+        // 3. Cập nhật nội dung hợp đồng (Thay vì báo lỗi tồn tại)
+        contract.Content = request.Content;
+        contract.UpdatedAt = DateTime.UtcNow;
+
+        // Reset lại chữ ký nếu sửa hợp đồng (Tùy logic nghiệp vụ, ở đây mình giữ nguyên hoặc xóa chữ ký cũ)
+        // contract.ContractSignatures.Clear(); 
+
+        await _contractRepo.Update(contract);
 
         return new ContractDetailDto
         {
@@ -56,9 +61,9 @@ public class ContractService : IContractService
         };
     }
 
+    // ... (Các hàm GetContractByGroupAsync, SignContractAsync GIỮ NGUYÊN) ...
     public async Task<ContractDetailDto> GetContractByGroupAsync(int userId, int groupId)
     {
-        // Validate thành viên
         var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
         if (!groups.Any(g => g.CoOwnerGroupId == groupId))
             throw new Exception("Bạn không phải thành viên nhóm.");
@@ -66,10 +71,9 @@ public class ContractService : IContractService
         var contract = await _contractRepo.GetByGroupIdAsync(groupId);
         if (contract == null) throw new Exception("Nhóm chưa có hợp đồng.");
 
-        // Lấy danh sách thành viên để map trạng thái ký
         var groupDetail = await _groupRepo.GetGroupDetailAsync(groupId);
-
         var signatures = new List<SignatureStatusDto>();
+
         if (groupDetail != null)
             foreach (var member in groupDetail.CoOwnershipMembers)
             {
@@ -94,17 +98,15 @@ public class ContractService : IContractService
 
     public async Task SignContractAsync(int userId, int contractId)
     {
-        // 1. Check đã ký chưa
         var signed = await _contractRepo.HasUserSignedAsync(contractId, userId);
         if (signed) throw new Exception("Bạn đã ký hợp đồng này rồi.");
 
-        // 2. Tạo chữ ký
         var signature = new ContractSignature
         {
             ContractId = contractId,
             UserId = userId,
             SignedAt = DateTime.UtcNow,
-            Status = 1 // 1 = Signed
+            Status = 1
         };
 
         await _contractRepo.AddSignatureAsync(signature);

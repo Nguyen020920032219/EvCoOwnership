@@ -1,6 +1,7 @@
 using System.Text;
 using ContractGroupService.Business.Services.Contracts;
 using ContractGroupService.Business.Services.Disputes;
+using ContractGroupService.Business.Services.Group;
 using ContractGroupService.Business.Services.Groups;
 using ContractGroupService.Business.Services.Votes;
 using ContractGroupService.Data.Configurations;

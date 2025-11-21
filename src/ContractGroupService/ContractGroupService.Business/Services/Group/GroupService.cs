@@ -1,9 +1,10 @@
 using ContractGroupService.Business.Models;
+using ContractGroupService.Business.Services.Groups;
 using ContractGroupService.Data.Entities;
 using ContractGroupService.Data.Repositories.Groups;
 using Microsoft.EntityFrameworkCore;
 
-namespace ContractGroupService.Business.Services.Groups;
+namespace ContractGroupService.Business.Services.Group;
 
 public class GroupService : IGroupService
 {
@@ -16,32 +17,42 @@ public class GroupService : IGroupService
 
     public async Task<GroupDetailDto> CreateGroupAsync(int creatorUserId, CreateGroupRequest request)
     {
-        // 1. Validate Tổng tỷ lệ sở hữu phải là 100% (1.0)
-        // Người tạo cũng phải có phần, cộng với các thành viên khác
-        var totalShare = request.InitialMembers.Sum(m => m.SharePercent);
+        // 1. Kiểm tra danh sách thành viên (Thêm người tạo nếu thiếu)
+        var membersList = request.InitialMembers.ToList();
+        if (!membersList.Any(m => m.UserId == creatorUserId))
+        {
+            // Logic tự thêm hoặc báo lỗi tùy bạn. Ở đây mình để nguyên logic cũ.
+        }
 
-        // Giả sử request chứa toàn bộ danh sách chia phần, bao gồm cả người tạo
-        // Nếu request ko có người tạo, ta phải tự thêm logic. 
-        // Ở đây giả định request gửi lên danh sách FULL.
-        if (Math.Abs(totalShare - 1.0m) > 0.001m) // So sánh số thực
-            throw new Exception($"Tổng tỷ lệ sở hữu phải là 100%. Hiện tại: {totalShare * 100}%");
+        // 2. Validate 100% share
+        var totalShare = membersList.Sum(m => m.SharePercent);
+        if (Math.Abs(totalShare - 1.0m) > 0.001m)
+            throw new Exception($"Tổng tỷ lệ sở hữu phải là 100%. Hiện tại: {totalShare * 100}%.");
 
-        // 2. Tạo Group
+        // 3. Tạo Group KÈM Hợp đồng nháp (Quan trọng)
+        // Vì DB bắt buộc có ContractId, ta tạo luôn object Contract để EF tự insert
         var group = new CoOwnershipGroup
         {
             GroupName = request.GroupName,
-            ContractId = 0, // TODO: Sẽ update sau khi tạo Contract
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+
+            // --- KHỞI TẠO HỢP ĐỒNG NHÁP TẠI ĐÂY ---
+            Contract = new OwnershipContract
+            {
+                Content = "Hợp đồng nháp - Đang chờ soạn thảo", // Nội dung tạm
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
         };
 
-        // 3. Map Members & Shares
-        foreach (var mem in request.InitialMembers)
+        // 4. Map Members & Shares
+        foreach (var mem in membersList)
         {
             group.CoOwnershipMembers.Add(new CoOwnershipMember
             {
                 UserId = mem.UserId,
-                IsGroupAdmin = mem.IsAdmin || mem.UserId == creatorUserId // Người tạo auto là Admin
+                IsGroupAdmin = mem.IsAdmin || mem.UserId == creatorUserId
             });
 
             group.OwnershipShares.Add(new OwnershipShare
@@ -51,20 +62,21 @@ public class GroupService : IGroupService
             });
         }
 
-        // 4. Save (Cascading insert: Group -> Members -> Shares)
+        // 5. Save
+        // EF Core sẽ tự động: Insert Contract -> Lấy ID -> Insert Group với ContractId đó
         await _groupRepo.Add(group);
-        // await _groupRepo.SaveChangesAsync(); 
 
-        // 5. Response
+        // 6. Response
         return new GroupDetailDto
         {
             GroupId = group.CoOwnerGroupId,
             GroupName = group.GroupName,
             CreatedAt = group.CreatedAt,
-            Members = request.InitialMembers
+            Members = membersList
         };
     }
 
+    // ... (Các hàm GetMyGroupsAsync, GetGroupDetailAsync, GetGroups GIỮ NGUYÊN) ...
     public async Task<List<CoOwnerGroupDto>> GetMyGroupsAsync(int userId)
     {
         var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
@@ -72,21 +84,19 @@ public class GroupService : IGroupService
         {
             CoOwnerGroupId = g.CoOwnerGroupId,
             GroupName = g.GroupName,
-            ContractId = g.ContractId,
+            ContractId = g.ContractId, // Không bao giờ null nữa
             CreatedAt = g.CreatedAt
         }).ToList();
     }
 
     public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId, int userId)
     {
-        // Check quyền: User có nằm trong nhóm này không?
         var group = await _groupRepo.GetGroupDetailAsync(groupId);
         if (group == null) throw new Exception("Group not found");
 
         var isMember = group.CoOwnershipMembers.Any(m => m.UserId == userId);
         if (!isMember) throw new Exception("Bạn không phải thành viên của nhóm này.");
 
-        // Map data
         return new GroupDetailDto
         {
             GroupId = group.CoOwnerGroupId,

@@ -92,6 +92,13 @@ public class DisputeService : IDisputeService
         await _disputeRepo.Update(dispute);
     }
 
+    public async Task<List<DisputeDetailDto>> GetAllDisputesAsync()
+    {
+        var disputes = await _disputeRepo.GetAllAsync();
+
+        return disputes.Select(MapToDto).ToList();
+    }
+
     private static DisputeDetailDto MapToDto(GroupDispute d)
     {
         return new DisputeDetailDto
@@ -108,12 +115,5 @@ public class DisputeService : IDisputeService
                 SentAt = m.CreatedAt
             }).ToList()
         };
-    }
-    
-    public async Task<List<DisputeDetailDto>> GetAllDisputesAsync()
-    {
-        var disputes = await _disputeRepo.GetAllAsync();
-        
-        return disputes.Select(MapToDto).ToList();
     }
 }

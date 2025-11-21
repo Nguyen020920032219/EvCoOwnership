@@ -84,9 +84,9 @@ public class DisputesController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
-    
+
     [HttpGet]
-    [Authorize(Roles = "Admin,Operator")] 
+    [Authorize(Roles = "Admin,Operator")]
     public async Task<IActionResult> GetAll()
     {
         try
