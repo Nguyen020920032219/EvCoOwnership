@@ -19,13 +19,17 @@ public class VotesController : ControllerBase
         _voteService = voteService;
     }
 
+    // Helper properties để code gọn hơn
+    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private string? UserRole => User.FindFirst(ClaimTypes.Role)?.Value;
+
     [HttpPost("{voteId}/cast")]
     public async Task<IActionResult> CastVote(int voteId, [FromBody] CastVoteRequest request)
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            await _voteService.CastVoteAsync(userId, voteId, request);
+            // Truyền thêm UserRole
+            await _voteService.CastVoteAsync(UserId, UserRole, voteId, request);
             return Ok(ApiResult<string>.Ok("OK", "Bỏ phiếu thành công"));
         }
         catch (Exception ex)
@@ -39,8 +43,8 @@ public class VotesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var list = await _voteService.GetVotesByGroupAsync(userId, groupId);
+            // Truyền thêm UserRole
+            var list = await _voteService.GetVotesByGroupAsync(UserId, UserRole, groupId);
             return Ok(ApiResult<List<VoteDetailDto>>.Ok(list));
         }
         catch (Exception ex)
@@ -54,8 +58,8 @@ public class VotesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _voteService.GetVoteResultAsync(userId, voteId);
+            // Truyền thêm UserRole
+            var result = await _voteService.GetVoteResultAsync(UserId, UserRole, voteId);
             return Ok(ApiResult<VoteDetailDto>.Ok(result));
         }
         catch (Exception ex)
@@ -69,14 +73,8 @@ public class VotesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-            // Lấy Role từ Claims
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "CoOwner";
-
-            // Truyền Role xuống Service
-            var result = await _voteService.CreateVoteAsync(userId, userRole, request);
-
+            // Truyền thêm UserRole
+            var result = await _voteService.CreateVoteAsync(UserId, UserRole, request);
             return Ok(ApiResult<VoteDetailDto>.Ok(result, "Tạo cuộc bỏ phiếu thành công"));
         }
         catch (Exception ex)
