@@ -9,4 +9,5 @@ public interface IDisputeService
     Task AddMessageAsync(int userId, int disputeId, string message);
     Task ResolveDisputeAsync(int staffId, int disputeId, string resolutionNote);
     Task<List<DisputeDetailDto>> GetAllDisputesAsync();
+    Task<List<DisputeDetailDto>> GetDisputesByGroupAsync(int userId, int groupId);
 }

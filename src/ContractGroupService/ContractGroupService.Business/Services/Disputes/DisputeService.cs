@@ -99,6 +99,23 @@ public class DisputeService : IDisputeService
         return disputes.Select(MapToDto).ToList();
     }
 
+    public async Task<List<DisputeDetailDto>> GetDisputesByGroupAsync(int userId, int groupId)
+    {
+        // 1. Check quyền thành viên: User có thuộc nhóm này không?
+        var groups = await _groupRepo.GetGroupsByUserIdAsync(userId);
+
+        // Nếu user không thuộc nhóm, và không phải Admin/Operator (logic mở rộng nếu cần)
+        // Ở đây mình làm chặt: chỉ thành viên nhóm mới xem được dispute của nhóm
+        if (!groups.Any(g => g.CoOwnerGroupId == groupId))
+            throw new Exception("Bạn không phải là thành viên của nhóm này.");
+
+        // 2. Gọi Repo lấy dữ liệu
+        var disputes = await _disputeRepo.GetByGroupIdAsync(groupId);
+
+        // 3. Map sang DTO
+        return disputes.Select(MapToDto).ToList();
+    }
+
     private static DisputeDetailDto MapToDto(GroupDispute d)
     {
         return new DisputeDetailDto

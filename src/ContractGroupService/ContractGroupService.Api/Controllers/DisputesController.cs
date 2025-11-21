@@ -99,4 +99,19 @@ public class DisputesController : ControllerBase
             return BadRequest(ApiResult<string>.Fail(ex.Message));
         }
     }
+
+    [HttpGet("group/{groupId}")]
+    public async Task<IActionResult> GetByGroup(int groupId)
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await _disputeService.GetDisputesByGroupAsync(userId, groupId);
+            return Ok(ApiResult<List<DisputeDetailDto>>.Ok(result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<string>.Fail(ex.Message));
+        }
+    }
 }
